@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="js/three.min.js"></script>
+    <script src="js/visualizer.js"></script>
+    <script src="js/FileSaver.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body{
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+    <script>
+
+      window.addEventListener('load',
+       ()=>init_visualizer(
+        document.querySelector('#canvas3d')
+        ));
+
+    </script>
+  </head>
+  <body>
+      <canvas id="canvas3d" draggable="true" ondragover="event.preventDefault();"></canvas>
+  </body>
+</html>
