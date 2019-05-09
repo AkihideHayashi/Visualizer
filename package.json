@@ -1,0 +1,31 @@
+{
+  "name": "visualizer",
+  "version": "1.0.0",
+  "description": "It is a Molecular visualizer works on browser. We should use json format instead of ruffled formats. Do not you think so ? You can visualize json atomic file by drag and drop. If you use OSX, you can use two finger drag, three finger drag and pan to change your sight. You can modify atoms by three finger drag. And you can download json file by right click.",
+  "main": "index.js",
+  "dependencies": {
+    "@types/npm": "^2.0.30",
+    "bind-decorator": "^1.0.11",
+    "file-saver": "^2.0.1",
+    "filesaver": "0.0.13",
+    "require": "^2.4.20",
+    "typescript": "^3.4.5"
+  },
+  "devDependencies": {
+    "@types/file-saver": "^2.0.0",
+    "@types/three": "^0.103.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akhdhys/Visualizer.git"
+  },
+  "author": "akhdhys",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/akhdhys/Visualizer/issues"
+  },
+  "homepage": "https://github.com/akhdhys/Visualizer#readme"
+}
