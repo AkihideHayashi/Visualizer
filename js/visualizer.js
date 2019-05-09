@@ -8,6 +8,25 @@ function init_visualizer(canvas) {
     tick(objects);
 }
 
+function init_objects(canvas){
+    const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true
+    });
+
+    let scene = new THREE.Scene();
+    let camera = new THREE.PerspectiveCamera(45, 1.0);
+    let light = new THREE.PointLight(0xffffff);
+    let raycaster = new THREE.Raycaster();
+    let atoms = [];
+    let n = 0;
+
+    // scene.add(light);
+    let objects = {canvas: canvas, renderer: renderer, scene: scene, camera: camera, light: light, raycaster: raycaster, atoms: atoms, meshes: [], n:n};
+    const controls = new OrbitControls(objects);
+    return objects;
+}
+
 const color = {
     H: 0xffffff,
     Pt: 0xa0a0a0,
@@ -30,7 +49,7 @@ function draw_atoms(objects){
     scene.add(objects.light);
     for (const atom of env.atoms){
         mesh = new THREE.Mesh(
-            new THREE.SphereGeometry( 1, 32, 32 ),
+            new THREE.SphereGeometry( radius[atom.n], 32, 32 ),
             new THREE.MeshLambertMaterial({ color: color[atom.n] })
         );
         mesh.position.set(atom.x, atom.y, atom.z);
@@ -56,18 +75,18 @@ function draw_lattice(scene, lattice){
     l02 = l0.clone().add(l2);
     l12 = l1.clone().add(l2);
     l012 = l01.clone().add(l2);
-    scene.add(arrow(  z,   l0, 0xffffff, 0.0, 0.0));
-    scene.add(arrow(  z,   l1, 0xffffff, 0.0, 0.0));
-    scene.add(arrow(  z,   l2, 0xffffff, 0.0, 0.0));
-    scene.add(arrow( l0,  l01, 0xffffff, 0.0, 0.0));
-    scene.add(arrow( l0,  l02, 0xffffff, 0.0, 0.0));
-    scene.add(arrow( l1,  l12, 0xffffff, 0.0, 0.0));
-    scene.add(arrow( l1,  l01, 0xffffff, 0.0, 0.0));
-    scene.add(arrow( l2,  l12, 0xffffff, 0.0, 0.0));
-    scene.add(arrow( l2,  l02, 0xffffff, 0.0, 0.0));
-    scene.add(arrow(l01, l012, 0xffffff, 0.0, 0.0));
-    scene.add(arrow(l12, l012, 0xffffff, 0.0, 0.0));
-    scene.add(arrow(l02, l012, 0xffffff, 0.0, 0.0));
+    scene.add(arrow(  z,   l0, 0xffffff, 0.01, 0.01));
+    scene.add(arrow(  z,   l1, 0xffffff, 0.01, 0.01));
+    scene.add(arrow(  z,   l2, 0xffffff, 0.01, 0.01));
+    scene.add(arrow( l0,  l01, 0xffffff, 0.01, 0.01));
+    scene.add(arrow( l0,  l02, 0xffffff, 0.01, 0.01));
+    scene.add(arrow( l1,  l12, 0xffffff, 0.01, 0.01));
+    scene.add(arrow( l1,  l01, 0xffffff, 0.01, 0.01));
+    scene.add(arrow( l2,  l12, 0xffffff, 0.01, 0.01));
+    scene.add(arrow( l2,  l02, 0xffffff, 0.01, 0.01));
+    scene.add(arrow(l01, l012, 0xffffff, 0.01, 0.01));
+    scene.add(arrow(l12, l012, 0xffffff, 0.01, 0.01));
+    scene.add(arrow(l02, l012, 0xffffff, 0.01, 0.01));
 }
 
 function arrow(start, end, color, headlength, headwidth){
@@ -77,24 +96,6 @@ function arrow(start, end, color, headlength, headwidth){
     return new THREE.ArrowHelper(n, start, l, color, headlength, headwidth);
 }
 
-function init_objects(canvas){
-    const renderer = new THREE.WebGLRenderer({
-        canvas: canvas,
-        antialias: true
-    });
-
-    let scene = new THREE.Scene();
-    let camera = new THREE.PerspectiveCamera(45, 1.0);
-    let light = new THREE.PointLight(0xffffff);
-    let raycaster = new THREE.Raycaster();
-    let atoms = [];
-    let n = 0;
-
-    // scene.add(light);
-    let objects = {canvas: canvas, renderer: renderer, scene: scene, camera: camera, light: light, raycaster: raycaster, atoms: atoms, meshes: [], n:n};
-    const controls = new OrbitControls(objects);
-    return objects;
-}
 
 function read_file(objects){
     return function(e){
