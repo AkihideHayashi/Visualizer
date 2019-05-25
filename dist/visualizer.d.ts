@@ -15,7 +15,6 @@ interface Input {
     cell?: Array<Array<number>>;
     atoms: Array<Atom>;
 }
-declare function init_visualizer(canvas: HTMLCanvasElement): void;
 declare class Visualizer {
     canvas: HTMLCanvasElement;
     input: Array<Input>;
@@ -44,7 +43,7 @@ declare class Visualizer {
     grab(intersects: THREE.Intersection[]): void;
     onmousemove(event: MouseEvent): void;
     onmouseup(event: MouseEvent): void;
-    oncontextmenu(event: MouseEvent): void;
+    download(): void;
     set_mouse_position(event: MouseEvent): void;
     rotate(event: MouseEvent): void;
     drag(event: MouseEvent): void;

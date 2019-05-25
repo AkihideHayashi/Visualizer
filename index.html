@@ -1,28 +1,51 @@
+<!DOCTYPE HTML>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <script src="node_modules/three/build/three.min.js"></script>
-    <script src="node_modules/file-saver/dist/FileSaver.min.js"></script>
-    <script src="node_modules/three-addons/build/three-addons.min.js"></script>
-    <script src="dist/visualizer.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-        body{
-            margin: 0;
-            overflow: hidden;
-        }
-    </style>
-    <script>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset="utf-8" />
+        <link rel="stylesheet" type="text/css" href="css/main.css">
+        <link rel="stylesheet" type="text/css" href="css/ddmenu.css">
+        <title>Visualizer</title>
+    </head>
 
-      window.addEventListener('load',
-       ()=>init_visualizer(
-        document.querySelector('#canvas3d')
-        ));
+    <body>
+        <ul class="ddmenu">
+            <li><a>File</a>
+                <ul>
+                    <li><a id="download">Download</a></li>
+                </ul>
+            </li>
+            <li><a>Edit</a>
+                <ul>
+                    <li><a id="clear">Clear</a></li>
+                </ul>
+            </li>
+        </ul>
 
-    </script>
-  </head>
-  <title>Visualizer</title>
-  <body>
-      <canvas id="canvas3d" draggable="true" ondragover="event.preventDefault();"></canvas>
-  </body>
+        <canvas id="visualizer" draggable="true" ondragover="event.preventDefault();"></canvas>
+
+        <script src="node_modules/three/build/three.min.js"></script>
+        <script src="node_modules/file-saver/dist/FileSaver.min.js"></script>
+        <script src="dist/visualizer.js"></script>
+        <script>
+            window.addEventListener('load', ()=>init_visualizer());
+            function init_visualizer() {
+                const canvas = document.querySelector('#visualizer');
+                const visualizer = new Visualizer(canvas);
+                window.ondrop = visualizer.ondrop.bind(visualizer);
+                window.onresize = visualizer.onresize.bind(visualizer);
+                canvas.onwheel = visualizer.onwheel.bind(visualizer);
+                canvas.onmouseup = visualizer.onmouseup.bind(visualizer);
+                canvas.onmousemove = visualizer.onmousemove.bind(visualizer);
+                canvas.onmousedown = visualizer.onmousedown.bind(visualizer);
+                // canvas.oncontextmenu = visualizer.oncontextmenu.bind(visualizer);
+                document.getElementById('clear').addEventListener('click', visualizer.clear.bind(visualizer));
+                document.getElementById('download').addEventListener('click', (_)=>visualizer.download());
+
+                visualizer.onresize(null);
+                visualizer.sync_camera_light();
+                visualizer.tick();
+            }
+        </script>
+    </body>
 </html>

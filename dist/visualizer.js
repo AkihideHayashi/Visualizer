@@ -7,19 +7,6 @@ const radius = {
     H: 0.31,
     Pt: 1.39,
 };
-function init_visualizer(canvas) {
-    let visualizer = new Visualizer(canvas);
-    window.ondrop = visualizer.ondrop.bind(visualizer);
-    window.onresize = visualizer.onresize.bind(visualizer);
-    canvas.onwheel = visualizer.onwheel.bind(visualizer);
-    canvas.onmouseup = visualizer.onmouseup.bind(visualizer);
-    canvas.onmousemove = visualizer.onmousemove.bind(visualizer);
-    canvas.onmousedown = visualizer.onmousedown.bind(visualizer);
-    canvas.oncontextmenu = visualizer.oncontextmenu.bind(visualizer);
-    visualizer.onresize(null);
-    visualizer.sync_camera_light();
-    visualizer.tick();
-}
 class Visualizer {
     constructor(canvas) {
         this.canvas = canvas;
@@ -140,11 +127,9 @@ class Visualizer {
         this.draged_atom = undefined;
         this.set_mouse_position(event);
     }
-    oncontextmenu(event) {
-        let blob = new Blob([JSON.stringify(this.input)], { "type": "text/plain" });
+    download() {
+        const blob = new Blob([JSON.stringify(this.input)], { "type": "text/plain" });
         saveAs(blob, "ouput.json");
-        event.preventDefault();
-        event.stopPropagation();
     }
     set_mouse_position(event) {
         const element = this.canvas;

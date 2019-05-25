@@ -33,20 +33,20 @@ interface Input{
   atoms: Array<Atom>;
 }
 
-function init_visualizer(canvas: HTMLCanvasElement) {
-  let visualizer = new Visualizer(canvas);
-  window.ondrop = visualizer.ondrop.bind(visualizer);
-  window.onresize = visualizer.onresize.bind(visualizer);
-  canvas.onwheel = visualizer.onwheel.bind(visualizer);
-  canvas.onmouseup = visualizer.onmouseup.bind(visualizer);
-  canvas.onmousemove = visualizer.onmousemove.bind(visualizer);
-  canvas.onmousedown = visualizer.onmousedown.bind(visualizer);
-  canvas.oncontextmenu = visualizer.oncontextmenu.bind(visualizer);
+// function init_visualizer(canvas: HTMLCanvasElement) {
+//   let visualizer = new Visualizer(canvas);
+//   window.ondrop = visualizer.ondrop.bind(visualizer);
+//   window.onresize = visualizer.onresize.bind(visualizer);
+//   canvas.onwheel = visualizer.onwheel.bind(visualizer);
+//   canvas.onmouseup = visualizer.onmouseup.bind(visualizer);
+//   canvas.onmousemove = visualizer.onmousemove.bind(visualizer);
+//   canvas.onmousedown = visualizer.onmousedown.bind(visualizer);
+//   canvas.oncontextmenu = visualizer.oncontextmenu.bind(visualizer);
 
-  visualizer.onresize(null);
-  visualizer.sync_camera_light();
-  visualizer.tick();
-}
+//   visualizer.onresize(null);
+//   visualizer.sync_camera_light();
+//   visualizer.tick();
+// }
 
 class Visualizer {
   canvas: HTMLCanvasElement;
@@ -195,11 +195,9 @@ class Visualizer {
     this.set_mouse_position(event);
   }
 
-  oncontextmenu(event: MouseEvent){
-    let blob = new Blob([JSON.stringify(this.input)], {"type": "text/plain"});
-    saveAs(blob, "ouput.json")
-    event.preventDefault();
-    event.stopPropagation();
+  download(){
+    const blob = new Blob([JSON.stringify(this.input)], {"type": "text/plain"});
+    saveAs(blob, "download.json")
   }
 
   set_mouse_position(event: MouseEvent){
@@ -309,3 +307,9 @@ function arrow_helper(s: THREE.Vector3, e:THREE.Vector3, hex:number, headLength:
   const dir = es.normalize();
   return new THREE.ArrowHelper(dir, origin, length, hex, headLength, headWidth);
 }
+
+  // oncontextmenu(event: MouseEvent){
+  //   this.download();
+  //   event.preventDefault();
+  //   event.stopPropagation();
+  // }
