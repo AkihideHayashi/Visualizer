@@ -74,15 +74,6 @@ class Visualizer {
             }
         };
     }
-    clear() {
-        const { scene, meshes } = this;
-        while (scene.children.length > 0) {
-            scene.remove(scene.children[0]);
-        }
-        while (meshes.length > 0) {
-            meshes.pop();
-        }
-    }
     onwheel(event) {
         event.preventDefault();
         event.stopPropagation();
@@ -109,52 +100,25 @@ class Visualizer {
         this.raycaster.setFromCamera(this.mouse, this.camera);
         const intersects = this.raycaster.intersectObjects(this.meshes);
         if (intersects.length > 0) {
-            this.draged_atom = intersects[0].object;
-            let i = 0;
-            for (let mesh of this.meshes) {
-                if (mesh.position == this.draged_atom.position) {
-                    this.draged_index = i;
-                }
-                i += 1;
-            }
-            const normal = new THREE.Vector3(0.0, 0.0, -1.0);
-            normal.applyQuaternion(this.camera.quaternion);
-            this.plane.setFromNormalAndCoplanarPoint(normal, this.draged_atom.position);
-            if (this.raycaster.ray.intersectPlane(this.plane, this.intersection)) {
-                this.offset.copy(this.intersection).sub(this.draged_atom.position);
-            }
+            this.grab(intersects);
         }
     }
-    rotate(event) {
-        let old_mouse = this.mouse.clone();
-        this.set_mouse_position(event);
-        let delta = this.mouse.clone().sub(old_mouse);
-        let length = delta.length();
-        delta.normalize();
-        let angle = 2 * Math.PI * length;
-        let quaternion = new THREE.Quaternion(delta.y * Math.sin(angle / 2), -delta.x * Math.sin(angle / 2), 0.0, Math.cos(angle / 2));
-        let quaternion_camera = this.camera.quaternion.clone();
-        quaternion.normalize();
-        quaternion_camera.normalize();
-        let quaternion_camera_inverse = quaternion_camera.clone().inverse();
-        let rot = quaternion_camera.multiply(quaternion).multiply(quaternion_camera_inverse);
-        this.camera.applyQuaternion(rot);
-        this.camera.position.add(this.look);
-        this.look.applyQuaternion(rot);
-        this.camera.position.sub(this.look);
-    }
-    drag(event) {
-        if (this.draged_atom) {
-            this.set_mouse_position(event);
-            this.raycaster.setFromCamera(this.mouse, this.camera);
-            if (this.raycaster.ray.intersectPlane(this.plane, this.intersection)) {
-                this.draged_atom.position.copy(this.intersection.sub(this.offset));
-                let atom = this.input[this.index].atoms[this.draged_index];
-                atom.x = this.draged_atom.position.x;
-                atom.y = this.draged_atom.position.y;
-                atom.z = this.draged_atom.position.z;
+    grab(intersects) {
+        this.draged_atom = intersects[0].object;
+        let i = 0;
+        for (let mesh of this.meshes) {
+            if (mesh.position == this.draged_atom.position) {
+                this.draged_index = i;
             }
+            i += 1;
         }
+        const normal = new THREE.Vector3(0.0, 0.0, -1.0);
+        normal.applyQuaternion(this.camera.quaternion);
+        this.plane.setFromNormalAndCoplanarPoint(normal, this.draged_atom.position);
+        if (this.raycaster.ray.intersectPlane(this.plane, this.intersection)) {
+            this.offset.copy(this.intersection).sub(this.draged_atom.position);
+        }
+        this.look.copy(this.draged_atom.position).sub(this.camera.position);
     }
     onmousemove(event) {
         event.preventDefault();
@@ -189,6 +153,46 @@ class Visualizer {
         const w = element.offsetWidth;
         const h = element.offsetHeight;
         this.mouse.set((x / w) * 2 - 1, -(y / h) * 2 + 1);
+    }
+    rotate(event) {
+        let old_mouse = this.mouse.clone();
+        this.set_mouse_position(event);
+        let delta = this.mouse.clone().sub(old_mouse);
+        let length = delta.length();
+        delta.normalize();
+        let angle = 2 * Math.PI * length;
+        let quaternion = new THREE.Quaternion(delta.y * Math.sin(angle / 2), -delta.x * Math.sin(angle / 2), 0.0, Math.cos(angle / 2));
+        let quaternion_camera = this.camera.quaternion.clone();
+        quaternion.normalize();
+        quaternion_camera.normalize();
+        let quaternion_camera_inverse = quaternion_camera.clone().inverse();
+        let rot = quaternion_camera.multiply(quaternion).multiply(quaternion_camera_inverse);
+        this.camera.applyQuaternion(rot);
+        this.camera.position.add(this.look);
+        this.look.applyQuaternion(rot);
+        this.camera.position.sub(this.look);
+    }
+    drag(event) {
+        if (this.draged_atom) {
+            this.set_mouse_position(event);
+            this.raycaster.setFromCamera(this.mouse, this.camera);
+            if (this.raycaster.ray.intersectPlane(this.plane, this.intersection)) {
+                this.draged_atom.position.copy(this.intersection.sub(this.offset));
+                let atom = this.input[this.index].atoms[this.draged_index];
+                atom.x = this.draged_atom.position.x;
+                atom.y = this.draged_atom.position.y;
+                atom.z = this.draged_atom.position.z;
+            }
+        }
+    }
+    clear() {
+        const { scene, meshes } = this;
+        while (scene.children.length > 0) {
+            scene.remove(scene.children[0]);
+        }
+        while (meshes.length > 0) {
+            meshes.pop();
+        }
     }
     draw_atoms() {
         this.clear();

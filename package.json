@@ -9,6 +9,7 @@
     "file-saver": "^2.0.1",
     "filesaver": "0.0.13",
     "require": "^2.4.20",
+    "three-addons": "^1.2.0",
     "typescript": "^3.4.5"
   },
   "devDependencies": {

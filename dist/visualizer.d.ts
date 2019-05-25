@@ -39,15 +39,16 @@ declare class Visualizer {
     tick(): void;
     onresize(_: any): void;
     ondrop(event: any): void;
-    clear(): void;
     onwheel(event: WheelEvent): void;
     onmousedown(event: MouseEvent): void;
-    rotate(event: MouseEvent): void;
-    drag(event: MouseEvent): void;
+    grab(intersects: THREE.Intersection[]): void;
     onmousemove(event: MouseEvent): void;
     onmouseup(event: MouseEvent): void;
     oncontextmenu(event: MouseEvent): void;
     set_mouse_position(event: MouseEvent): void;
+    rotate(event: MouseEvent): void;
+    drag(event: MouseEvent): void;
+    clear(): void;
     draw_atoms(): void;
     draw_cell(): void;
 }
