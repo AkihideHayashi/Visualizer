@@ -1,3 +1,7 @@
+/**
+ * @author akhdhys / https:
+**/
+
 /// <reference path="../node_modules/three/src/Three.d.ts" />
 /// <reference path="../node_modules/\@types/file-saver/index.d.ts" />
 
