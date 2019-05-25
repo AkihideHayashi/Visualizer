@@ -1,23 +1,24 @@
-interface ElementalValue {
-    H: number;
-    Pt: number;
-    [key: string]: number;
-}
-declare const color: ElementalValue;
-declare const radius: ElementalValue;
 interface Atom {
     n: string;
-    x: number;
-    y: number;
-    z: number;
+    r: Array<number>;
 }
-interface Input {
+interface AtomsSnapshot {
     cell?: Array<Array<number>>;
     atoms: Array<Atom>;
 }
+interface Property {
+    color: number;
+    radius: number;
+}
+interface Input {
+    element: {
+        [key: string]: Property;
+    };
+    atoms: Array<AtomsSnapshot>;
+}
 declare class Visualizer {
     canvas: HTMLCanvasElement;
-    input: Array<Input>;
+    input?: Input;
     renderer: THREE.WebGLRenderer;
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;

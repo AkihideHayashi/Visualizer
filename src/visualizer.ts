@@ -1,3 +1,5 @@
+// import { Settings } from "http2";
+
 /**
  * @author akhdhys / https:
 **/
@@ -5,52 +7,29 @@
 /// <reference path="../node_modules/three/src/Three.d.ts" />
 /// <reference path="../node_modules/\@types/file-saver/index.d.ts" />
 
-interface ElementalValue{
-  H: number,
-  Pt: number
-  [key: string]: number
-}
-
-const color: ElementalValue = {
-    H: 0xffffff,
-    Pt: 0xa0a0a0,
-}
-
-const radius: ElementalValue = {
-    H: 0.31,
-    Pt: 1.39,
-}
-
 interface Atom{
   n: string;
-  x: number;
-  y: number;
-  z: number;
+  r: Array<number>;
 }
 
-interface Input{
+interface AtomsSnapshot{
   cell?: Array<Array<number>>;
   atoms: Array<Atom>;
 }
 
-// function init_visualizer(canvas: HTMLCanvasElement) {
-//   let visualizer = new Visualizer(canvas);
-//   window.ondrop = visualizer.ondrop.bind(visualizer);
-//   window.onresize = visualizer.onresize.bind(visualizer);
-//   canvas.onwheel = visualizer.onwheel.bind(visualizer);
-//   canvas.onmouseup = visualizer.onmouseup.bind(visualizer);
-//   canvas.onmousemove = visualizer.onmousemove.bind(visualizer);
-//   canvas.onmousedown = visualizer.onmousedown.bind(visualizer);
-//   canvas.oncontextmenu = visualizer.oncontextmenu.bind(visualizer);
+interface Property{
+  color: number;
+  radius: number;
+}
 
-//   visualizer.onresize(null);
-//   visualizer.sync_camera_light();
-//   visualizer.tick();
-// }
+interface Input{
+  element: {[key: string]: Property};
+  atoms: Array<AtomsSnapshot>;
+}
 
 class Visualizer {
   canvas: HTMLCanvasElement;
-  input: Array<Input>;
+  input?: Input;
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
@@ -69,7 +48,7 @@ class Visualizer {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.input = [];
+    this.input = undefined;
     this.renderer = new THREE.WebGLRenderer({
         canvas: canvas,
         antialias: true,
@@ -79,7 +58,6 @@ class Visualizer {
     this.camera_light = new THREE.PointLight(0xffffff);
     this.raycaster = new THREE.Raycaster();
     this.meshes = [];
-    this.input = [];
     this.index = 0;
     this.look = new THREE.Vector3();
     this.mouse_is_down = false;
@@ -234,10 +212,13 @@ class Visualizer {
       this.raycaster.setFromCamera(this.mouse, this.camera);
       if(this.raycaster.ray.intersectPlane(this.plane, this.intersection)){
         this.draged_atom.position.copy(this.intersection.sub(this.offset));
-        let atom = this.input[this.index].atoms[this.draged_index];
-        atom.x = this.draged_atom.position.x;
-        atom.y = this.draged_atom.position.y;
-        atom.z = this.draged_atom.position.z;
+        if(!this.input){
+          return;
+        }
+        let atom = this.input.atoms[this.index].atoms[this.draged_index];
+        atom.r[0] = this.draged_atom.position.x;
+        atom.r[1] = this.draged_atom.position.y;
+        atom.r[2] = this.draged_atom.position.z;
       }
     }
   }
@@ -254,13 +235,16 @@ class Visualizer {
 
   draw_atoms(){
     this.clear();
-    let atoms = this.input[this.index];
+    if(!this.input){
+      return;
+    }
+    let atoms = this.input.atoms[this.index];
     for (const atom of atoms.atoms){
       let mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(radius[atom.n], 32, 32),
-        new THREE.MeshLambertMaterial({color: color[atom.n]})
+        new THREE.SphereGeometry(this.input.element[atom.n].radius, 32, 32),
+        new THREE.MeshLambertMaterial({color: this.input.element[atom.n].color})
       )
-      mesh.position.set(atom.x, atom.y, atom.z);
+      mesh.position.set(atom.r[0], atom.r[1], atom.r[2]);
       this.meshes.push(mesh);
       this.scene.add(mesh);
     }
@@ -268,7 +252,10 @@ class Visualizer {
   }
 
   draw_cell(){
-    const cell = this.input[this.index].cell
+    if(!this.input){
+      return;
+    }
+    const cell = this.input.atoms[this.index].cell
     if (cell){
       const lattice = cell.map(array_to_vector);
       const z = new THREE.Vector3();
