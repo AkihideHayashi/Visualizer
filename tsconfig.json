@@ -5,7 +5,7 @@
         // "module": "none",
         "declaration": true,
         "sourceMap": true,
-        "outDir": "./dist",
+        "outDir": "./js",
         "removeComments": true,
         "strict": true,
         "noUnusedLocals": true,
@@ -17,7 +17,7 @@
         "forceConsistentCasingInFileNames": true
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
     ],
     "exclude": [
         "node_modules",

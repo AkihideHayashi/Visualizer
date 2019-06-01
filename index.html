@@ -3,7 +3,7 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta charset="utf-8" />
-        <link rel="stylesheet" type="text/css" href="css/main.css">
+        <link rel="stylesheet" type="text/css" href="css/visualizer.css">
         <link rel="stylesheet" type="text/css" href="css/ddmenu.css">
         <title>Visualizer</title>
     </head>
@@ -20,31 +20,122 @@
                     <li><a id="clear">Clear</a></li>
                 </ul>
             </li>
+            <li><a id="prev">Prev</a></li>
+            <li><a id="next">Next</a></li>
+            <li><a id="animation">Animation</a></li>
         </ul>
 
         <canvas id="visualizer" draggable="true" ondragover="event.preventDefault();"></canvas>
 
         <script src="node_modules/three/build/three.min.js"></script>
         <script src="node_modules/file-saver/dist/FileSaver.min.js"></script>
-        <script src="dist/visualizer.js"></script>
+        <script src="js/visualizer.js"></script>
+        <script src="js/input.js"></script>
+        <script src="js/objects.js"></script>
+        <script src="js/mousetracker.js"></script>
+        <script src="js/selectionbox.js"></script>
+        <script src="js/intersection.js"></script>
+        <script src="Pt38H2.js"></script>
         <script>
             window.addEventListener('load', ()=>init_visualizer());
             function init_visualizer() {
+                let current_mode = mode.normal;
                 const canvas = document.querySelector('#visualizer');
-                const visualizer = new Visualizer(canvas);
-                window.ondrop = visualizer.ondrop.bind(visualizer);
-                window.onresize = visualizer.onresize.bind(visualizer);
-                canvas.onwheel = visualizer.onwheel.bind(visualizer);
-                canvas.onmouseup = visualizer.onmouseup.bind(visualizer);
-                canvas.onmousemove = visualizer.onmousemove.bind(visualizer);
-                canvas.onmousedown = visualizer.onmousedown.bind(visualizer);
-                // canvas.oncontextmenu = visualizer.oncontextmenu.bind(visualizer);
-                document.getElementById('clear').addEventListener('click', visualizer.clear.bind(visualizer));
-                document.getElementById('download').addEventListener('click', (_)=>visualizer.download());
+                const visualizer = new Visualizer(canvas, "selectBox");
+                const mouse_tracker = new MouseTracker(canvas);
+                window.addEventListener('resize', ()=>visualizer.onresize());
+                canvas.addEventListener('mousemove', onmousemove, false);
+                canvas.addEventListener('mouseup', onmouseup, false);
+                canvas.addEventListener('mousedown', onmousedown, false);
+                canvas.addEventListener('wheel', onwheel, false);
+                canvas.addEventListener('dblclick', ondblclick, false);
+                visualizer.onresize();
+                visualizer.input = Pt38H2;
+                document.getElementById('next').addEventListener('click', (_)=>visualizer.next());
+                document.getElementById('prev').addEventListener('click', (_)=>visualizer.prev());
+                document.getElementById('animation').addEventListener('click', (_)=>toggle_animation());
+                let animation = false;
+                tick();
+                function toggle_animation(){
+                    animation = !animation;
+                    requestAnimationFrame(()=>continue_animation());
+                }
+                function continue_animation(){
+                    if(animation){
+                        visualizer.next();
+                        requestAnimationFrame(()=>continue_animation());
+                    }
+                }
+                function tick(){
+                    visualizer.render();
+                    requestAnimationFrame(()=>tick());
+                }
+                function onmousedown(event){
+                    mouse_tracker.track(event);
+                    const grabable = visualizer.grabable(mouse_tracker.new);
+                    const selected = visualizer.selected_atoms.length > 0;
+                    if(event.altKey){
+                        if(selected && grabable){
+                            current_mode = mode.rotate_atoms;
+                        }else{
+                            current_mode = mode.rotate_camera;
+                        }
+                    }else if(event.shiftKey){
+                        current_mode = mode.select;
+                        visualizer.open_selection(event, mouse_tracker.new);
+                    }else{
+                        visualizer.start_translate(mouse_tracker);
+                        if(selected && grabable){
+                            current_mode = mode.translate_atoms;
+                        }else{
+                            current_mode = mode.translate_camera;
+                        }
+                    }
+                }
+                function onmousemove(event){
+                    event.preventDefault();
+                    event.stopPropagation();
+                    mouse_tracker.track(event);
+                    if(current_mode == mode.rotate_camera){
+                        visualizer.rotate_camera(mouse_tracker);
+                    }else if(current_mode == mode.translate_camera){
+                        visualizer.translate_camera(mouse_tracker);
+                    }else if(current_mode == mode.rotate_atoms){
+                        visualizer.rotate_atoms(mouse_tracker);
+                    }else if(current_mode == mode.translate_atoms){
+                        visualizer.translate_atoms(mouse_tracker);
+                    }else if(current_mode == mode.select){
+                        visualizer.move_selection(event, mouse_tracker.new);
+                    }
+                }
+                function onmouseup(event){
+                    mouse_tracker.track(event);
+                    if(current_mode == mode.select){
+                        visualizer.over_selection(event, mouse_tracker.new);
+                    }
+                    current_mode = mode.normal;
+                }
+                function onwheel(event){
+                    const delta = event.deltaY;
+                    visualizer.zoom(delta);
+                }
+                function ondblclick(event){
+                    mouse_tracker.track(event);
+                    visualizer.single_selection(event, mouse_tracker.new);
+                }
+                // window.ondrop = visualizer.ondrop.bind(visualizer);
+                // window.onresize = visualizer.onresize.bind(visualizer);
+                // canvas.onwheel = visualizer.onwheel.bind(visualizer);
+                // canvas.onmouseup = visualizer.onmouseup.bind(visualizer);
+                // canvas.onmousemove = visualizer.onmousemove.bind(visualizer);
+                // canvas.onmousedown = visualizer.onmousedown.bind(visualizer);
+                // // canvas.oncontextmenu = visualizer.oncontextmenu.bind(visualizer);
+                // document.getElementById('clear').addEventListener('click', visualizer.clear.bind(visualizer));
+                // document.getElementById('download').addEventListener('click', (_)=>visualizer.download());
 
-                visualizer.onresize(null);
-                visualizer.sync_camera_light();
-                visualizer.tick();
+                // visualizer.onresize(null);
+                // visualizer.sync_camera_light();
+                // visualizer.tick();
             }
         </script>
     </body>

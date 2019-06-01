@@ -10,3 +10,5 @@ TODO: set look vector by click atom
 TODO: select mode
 TODO: animation
 TODO: 
+
+メモ：ために初期位置などでカメラの平行移動が出来ないことがあるが、これはcenterがカメラよりも後ろにある状態であり、この状態ではplaneとrayが交差しないため動かない。
