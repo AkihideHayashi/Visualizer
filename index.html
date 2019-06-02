@@ -35,8 +35,18 @@
         <script src="js/mousetracker.js"></script>
         <script src="js/selectionbox.js"></script>
         <script src="js/intersection.js"></script>
+        <script src="js/rotation.js"></script>
         <script src="Pt38H2.js"></script>
         <script>
+            const mode = {
+            normal: 0,
+            select: 1,
+            rotate_camera: 2,
+            translate_camera: 3,
+            rotate_atoms: 4,
+            translate_atoms: 5,
+            }
+
             window.addEventListener('load', ()=>init_visualizer());
             function init_visualizer() {
                 let current_mode = mode.normal;
@@ -50,7 +60,7 @@
                 canvas.addEventListener('wheel', onwheel, false);
                 canvas.addEventListener('dblclick', ondblclick, false);
                 visualizer.onresize();
-                visualizer.input = Pt38H2;
+                visualizer.set_input(Pt38H2);
                 document.getElementById('next').addEventListener('click', (_)=>visualizer.next());
                 document.getElementById('prev').addEventListener('click', (_)=>visualizer.prev());
                 document.getElementById('animation').addEventListener('click', (_)=>toggle_animation());
@@ -81,10 +91,11 @@
                             current_mode = mode.rotate_camera;
                         }
                     }else if(event.shiftKey){
+                        console.log(event);
                         current_mode = mode.select;
                         visualizer.open_selection(event, mouse_tracker.new);
                     }else{
-                        visualizer.start_translate(mouse_tracker);
+                        // visualizer.start_translate(mouse_tracker);
                         if(selected && grabable){
                             current_mode = mode.translate_atoms;
                         }else{

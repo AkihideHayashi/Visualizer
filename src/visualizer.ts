@@ -9,15 +9,7 @@
 /// <reference path="./mousetracker.ts"/>
 /// <reference path="./selectionbox.ts"/>
 /// <reference path="./intersection.ts"/>
-
-const mode = {
-  normal: 0,
-  select: 1,
-  rotate_camera: 2,
-  translate_camera: 3,
-  rotate_atoms: 4,
-  translate_atoms: 5,
-}
+/// <reference path="./rotation.ts"/>
 
 function array_to_vector(array: Array<number>){
   return new THREE.Vector3(array[0], array[1], array[2]);
@@ -47,38 +39,62 @@ class Visualizer{
   selection_box_helper: SelectionHelper;
   selected_atoms: number[];
   intersection: Intersection;
-  translate_center: THREE.Vector3;
-  translate_camera_init: THREE.Vector3;
+  rotation: Rotation;
 
   constructor(canvas: HTMLCanvasElement, cssClassName: string, deep: number){
+    this.input_manager = new InputManager();
+
     this.camera = new THREE.PerspectiveCamera(45, 1.0);
     this.strobe = new THREE.PointLight(0xffffff);
     this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, })
     this.scene = new THREE.Scene();
     this.objects = new Objects();
+
     this.look = new THREE.Vector3(0.0, 0.0, -1);
     this.center = new THREE.Vector3();
-    this.input_manager = new InputManager();
+
     this.selection_box = new SelectionBox(this.camera, this.scene, deep);
     this.selection_box_helper = new SelectionHelper(this.selection_box, this.renderer, cssClassName);
+
     this.selected_atoms = [];
     this.intersection = new Intersection();
-    this.translate_center = new THREE.Vector3();
-    this.translate_camera_init = new THREE.Vector3();
+
+    this.rotation = new Rotation();
   }
 
-  get input(){
-    return this.input_manager.input;
-  }
-
-  set input(input: Input){
+  set_input(input: Input){
     this.input_manager.frame = 0;
     this.input_manager.input = input;
     this.prepare_objects();
     this.prepare_scene();
     this.objects.center(this.selected_atoms, this.center);
     this.look.copy(this.center).sub(this.camera.position);
-    // this.intersection.set_plane(this.camera, this.center);
+  }
+
+  sync_input_to_objects(){
+    for(let i=0; i < this.input_manager.atoms.length; i+=1){
+      this.objects.atoms[i].position.copy(array_to_vector(this.input_manager.atoms[i].r));
+    }
+  }
+
+  sync_objects_to_input(selected: number[]){
+    for(const i of selected){
+      this.input_manager.atoms[i].r = vector_to_array(this.objects.atoms[i].position)
+    }
+  }
+
+  sync_camera_light(){
+    this.strobe.position.copy(this.camera.position);
+    this.strobe.quaternion.copy(this.camera.quaternion);
+  }
+
+  after_camera_move(){
+    this.sync_camera_light();
+    this.intersection.set_plane(this.camera, this.center);
+  }
+
+  after_center_move(){
+    this.intersection.set_plane(this.camera, this.center);
   }
 
   prepare_objects(){
@@ -115,41 +131,17 @@ class Visualizer{
     }
   }
 
-  // TODO: Refactoring
   rotate_camera(mouse: MouseTracker){
-    const delta = mouse.delta;
-    const length = delta.length();
-    delta.normalize();
-    let angle = 2 * Math.PI * length;
-    let quaternion = new THREE.Quaternion(delta.y * Math.sin(angle/2), -delta.x * Math.sin(angle/2), 0.0, Math.cos(angle/2));
-    let quaternion_camera = this.camera.quaternion.clone();
-    quaternion.normalize();
-    quaternion_camera.normalize();
-    let quaternion_camera_inverse = quaternion_camera.clone().inverse();
-    let rot = quaternion_camera.multiply(quaternion).multiply(quaternion_camera_inverse);
-    this.camera.applyQuaternion(rot);
-    this.camera.position.add(this.look);
-    this.look.applyQuaternion(rot);
-    this.camera.position.sub(this.look);
-    this.strobe.position.copy(this.camera.position);
-    this.strobe.quaternion.copy(this.camera.quaternion);
+    this.rotation.set_from_delta_camera(mouse.delta, this.camera.quaternion);
+    this.rotation.apply_rotation(this.center, [this.camera], [0]);
+    this.after_camera_move();
   }
 
   rotate_atoms(mouse: MouseTracker){
-    const delta = mouse.delta;
-    const length = delta.length();
-    delta.normalize();
-    let angle = 2 * Math.PI * length;
-    let quaternion = new THREE.Quaternion(delta.y * Math.sin(angle/2), -delta.x * Math.sin(angle/2), 0.0, Math.cos(angle/2));
-    let quaternion_camera = this.camera.quaternion.clone();
-    quaternion.normalize();
-    quaternion_camera.normalize();
-    let quaternion_camera_inverse = quaternion_camera.clone().inverse();
-    let rot = quaternion_camera.multiply(quaternion).multiply(quaternion_camera_inverse);
+    this.rotation.set_from_delta_camera(mouse.delta, this.camera.quaternion);
+    this.rotation.quaternion.inverse();
     for(const i of this.selected_atoms){
-      const v1 = this.center.clone().sub(this.objects.atoms[i].position)
-      const v2 = v1.clone().applyQuaternion(rot);
-      this.objects.atoms[i].position.sub(v1).add(v2);
+      this.rotation.apply_rotation(this.center, this.objects.atoms, this.selected_atoms);
       this.input_manager.atoms[i].r = vector_to_array(this.objects.atoms[i].position)
     }
   }
@@ -167,20 +159,13 @@ class Visualizer{
     let v = new THREE.Vector3(-delta.x * alpha, -delta.y * alpha, 0.0);
     v.applyQuaternion(this.camera.quaternion);
     this.camera.position.add(v);
-    this.strobe.position.copy(this.camera.position);
-    this.strobe.quaternion.copy(this.camera.quaternion);
-  }
-
-  start_translate(mouse: MouseTracker){
-    this.intersection.set_plane(this.camera, this.center);
-    this.translate_center.copy(this.intersection.get_intersection(mouse.new, this.camera));
-    this.translate_camera_init.copy(this.camera.position);
+    this.after_camera_move();
   }
 
   translate_atoms(mouse: MouseTracker){
-    const current = this.intersection.get_intersection(mouse.new, this.camera);
-    const delta = current.clone().sub(this.translate_center);
-    this.translate_center.copy(current);
+    const now = this.intersection.get_intersection(mouse.new, this.camera).clone();
+    const old = this.intersection.get_intersection(mouse.old, this.camera).clone();
+    const delta = now.clone().sub(old);
     for(const i of this.selected_atoms){
       this.objects.atoms[i].position.add(delta);
       this.input_manager.atoms[i].r = vector_to_array(this.objects.atoms[i].position)
@@ -193,6 +178,7 @@ class Visualizer{
     const old = this.intersection.get_intersection(mouse.old, this.camera).clone();
     const delta = old.clone().sub(now);
     this.camera.position.add(delta);
+    this.after_camera_move();
   }
 
   zoom(delta: number){
@@ -201,8 +187,7 @@ class Visualizer{
     v.applyQuaternion(this.camera.quaternion);
     this.camera.position.add(v);
     this.look.sub(v);
-    this.strobe.position.copy(this.camera.position);
-    this.strobe.quaternion.copy(this.camera.quaternion);
+    this.after_camera_move();
   }
 
   open_selection(event: MouseEvent, mouse: THREE.Vector2){
@@ -255,12 +240,6 @@ class Visualizer{
     this.objects.center(this.selected_atoms, this.center);
     this.look.copy(this.center).sub(this.camera.position);
     console.log(this.selected_atoms);
-  }
-
-  sync_input_to_objects(){
-    for(let i=0; i < this.input_manager.atoms.length; i+=1){
-      this.objects.atoms[i].position.copy(array_to_vector(this.input_manager.atoms[i].r));
-    }
   }
 
   next(){

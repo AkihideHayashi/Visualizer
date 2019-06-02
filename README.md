@@ -6,9 +6,10 @@ If you use OSX, you can use two finger drag, three finger drag and pan to change
 You can modify atoms by three finger drag.  
 And you can download json file by right click.  
 
-TODO: set look vector by click atom
-TODO: select mode
-TODO: animation
-TODO: 
+TODO: RとTで並進と回転を切り替えるように変更。
+TODO: リファクタリング
+TODO: Ctrl+Z
 
-メモ：ために初期位置などでカメラの平行移動が出来ないことがあるが、これはcenterがカメラよりも後ろにある状態であり、この状態ではplaneとrayが交差しないため動かない。
+メモ：ために初期位置などでカメラの平行移動が出来ないことe
+
+があるが、これはcenterがカメラよりも後ろにある状態であり、この状態ではplaneとrayが交差しないため動かない。
