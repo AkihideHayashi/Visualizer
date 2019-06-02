@@ -27,6 +27,9 @@ class Objects {
         while (this.bonds.length > 0) {
             this.bonds.pop();
         }
+        while (this.cells.length > 0) {
+            this.cells.pop();
+        }
     }
     atom_number(mesh) {
         let i = 0;

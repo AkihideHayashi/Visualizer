@@ -11,7 +11,6 @@ declare class Visualizer {
     scene: THREE.Scene;
     objects: Objects;
     strobe: THREE.Light;
-    look: THREE.Vector3;
     center: THREE.Vector3;
     input_manager: InputManager;
     selection_box: SelectionBox;
@@ -20,6 +19,7 @@ declare class Visualizer {
     intersection: Intersection;
     rotation: Rotation;
     constructor(canvas: HTMLCanvasElement, cssClassName: string, deep: number);
+    clear(): void;
     set_input(input: Input): void;
     sync_input_to_objects(): void;
     sync_objects_to_input(selected: number[]): void;

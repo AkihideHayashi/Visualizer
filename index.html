@@ -23,6 +23,7 @@
             <li><a id="prev">Prev</a></li>
             <li><a id="next">Next</a></li>
             <li><a id="animation">Animation</a></li>
+            <li><a href="https://akhdhys.github.io/">Top</a></li>
         </ul>
 
         <canvas id="visualizer" draggable="true" ondragover="event.preventDefault();"></canvas>
@@ -62,10 +63,12 @@
                 canvas.addEventListener('mouseup', onmouseup, false);
                 canvas.addEventListener('wheel', onwheel, false);
                 canvas.addEventListener('dblclick', ondblclick, false);
+                window.addEventListener('drop', ondrop, false)
+                document.getElementById('clear').addEventListener('click', (_)=>visualizer.clear());
+                document.getElementById('download').addEventListener('click', (_)=>download());
                 document.getElementById('next').addEventListener('click', (_)=>visualizer.next());
                 document.getElementById('prev').addEventListener('click', (_)=>visualizer.prev());
                 document.getElementById('animation').addEventListener('click', (_)=>toggle_animation());
-                visualizer.set_input(Pt38H2);
                 tick();
                 function toggle_animation(){
                     animation = !animation;
@@ -138,6 +141,21 @@
                     mouse_tracker.track(event);
                     visualizer.single_selection(event, mouse_tracker.new);
                 }
+                function download(){
+                    const blob = new Blob([JSON.stringify(visualizer.input_manager.input)], {"type": "text/plain"});
+                    saveAs(blob, "download.json")
+                }
+                function ondrop(event){
+                    event.preventDefault();
+                    const reader = new FileReader();
+                    reader.readAsText(event.dataTransfer.files[0]);
+                    reader.onload = (_)=>{
+                        if (typeof reader.result == "string"){
+                            visualizer.set_input(JSON.parse(reader.result));
+                        }
+                    };
+
+                }
                 // window.ondrop = visualizer.ondrop.bind(visualizer);
                 // window.onresize = visualizer.onresize.bind(visualizer);
                 // canvas.onwheel = visualizer.onwheel.bind(visualizer);
@@ -145,8 +163,6 @@
                 // canvas.onmousemove = visualizer.onmousemove.bind(visualizer);
                 // canvas.onmousedown = visualizer.onmousedown.bind(visualizer);
                 // // canvas.oncontextmenu = visualizer.oncontextmenu.bind(visualizer);
-                // document.getElementById('clear').addEventListener('click', visualizer.clear.bind(visualizer));
-                // document.getElementById('download').addEventListener('click', (_)=>visualizer.download());
 
                 // visualizer.onresize(null);
                 // visualizer.sync_camera_light();

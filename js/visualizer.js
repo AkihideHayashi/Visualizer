@@ -7,7 +7,6 @@ class Visualizer {
         this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, });
         this.scene = new THREE.Scene();
         this.objects = new Objects();
-        this.look = new THREE.Vector3(0.0, 0.0, -1);
         this.center = new THREE.Vector3();
         this.selection_box = new SelectionBox(this.camera, this.scene, deep);
         this.selection_box_helper = new SelectionHelper(this.selection_box, this.renderer, cssClassName);
@@ -16,13 +15,19 @@ class Visualizer {
         this.rotation = new Rotation();
         this.onresize();
     }
+    clear() {
+        this.objects.clear();
+        while (this.scene.children.length > 0) {
+            this.scene.remove(this.scene.children[0]);
+        }
+    }
     set_input(input) {
+        this.clear();
         this.input_manager.frame = 0;
         this.input_manager.input = input;
         this.prepare_objects();
         this.prepare_scene();
         this.objects.center(this.selected_atoms, this.center);
-        this.look.copy(this.center).sub(this.camera.position);
     }
     sync_input_to_objects() {
         for (let i = 0; i < this.input_manager.atoms.length; i += 1) {
@@ -121,7 +126,6 @@ class Visualizer {
         let v = new THREE.Vector3(0.0, 0.0, delta * alpha);
         v.applyQuaternion(this.camera.quaternion);
         this.camera.position.add(v);
-        this.look.sub(v);
     }
     open_selection(event, mouse) {
         this.selection_box_helper.selectStart(event);
@@ -148,7 +152,6 @@ class Visualizer {
             }
         }
         this.objects.center(this.selected_atoms, this.center);
-        this.look.copy(this.center).sub(this.camera.position);
         this.selection_box.collection = [];
         this.objects.set_emissive(this.selected_atoms, 0x0000ff);
     }
@@ -169,7 +172,6 @@ class Visualizer {
         }
         this.objects.set_emissive(this.selected_atoms, 0x0000ff);
         this.objects.center(this.selected_atoms, this.center);
-        this.look.copy(this.center).sub(this.camera.position);
     }
     next() {
         this.input_manager.next();
