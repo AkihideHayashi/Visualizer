@@ -1,6 +1,7 @@
 declare function chain_mesh(mesheses: THREE.Mesh[][]): IterableIterator<THREE.Mesh>;
 declare class Objects {
     atoms: THREE.Mesh[];
+    cells: THREE.ArrowHelper[];
     bonds: THREE.Mesh[];
     constructor();
     readonly objects: IterableIterator<THREE.Mesh>;

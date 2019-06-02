@@ -7,6 +7,9 @@ class Rotation {
         this.delta2 = new THREE.Vector2();
         this.delta3 = new THREE.Vector3();
     }
+    inverse() {
+        this.quaternion.inverse();
+    }
     set_from_delta_camera(delta, camera) {
         this.delta2.copy(delta.clone());
         const length = this.delta2.length();

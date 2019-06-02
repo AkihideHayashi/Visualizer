@@ -15,10 +15,12 @@ function* chain_mesh(mesheses: THREE.Mesh[][]){
 
 class Objects{
   atoms: THREE.Mesh[];
+  cells: THREE.ArrowHelper[];
   bonds: THREE.Mesh[];
 
   constructor(){
     this.atoms = [];
+    this.cells = [];
     this.bonds = [];
   }
 

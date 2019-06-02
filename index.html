@@ -36,6 +36,8 @@
         <script src="js/selectionbox.js"></script>
         <script src="js/intersection.js"></script>
         <script src="js/rotation.js"></script>
+        <script src="js/common.js"></script>
+        <script src="js/cell.js"></script>
         <script src="Pt38H2.js"></script>
         <script>
             const mode = {
@@ -50,21 +52,20 @@
             window.addEventListener('load', ()=>init_visualizer());
             function init_visualizer() {
                 let current_mode = mode.normal;
+                let animation = false;
                 const canvas = document.querySelector('#visualizer');
                 const visualizer = new Visualizer(canvas, "selectBox");
                 const mouse_tracker = new MouseTracker(canvas);
                 window.addEventListener('resize', ()=>visualizer.onresize());
+                canvas.addEventListener('mousedown', onmousedown, false);
                 canvas.addEventListener('mousemove', onmousemove, false);
                 canvas.addEventListener('mouseup', onmouseup, false);
-                canvas.addEventListener('mousedown', onmousedown, false);
                 canvas.addEventListener('wheel', onwheel, false);
                 canvas.addEventListener('dblclick', ondblclick, false);
-                visualizer.onresize();
-                visualizer.set_input(Pt38H2);
                 document.getElementById('next').addEventListener('click', (_)=>visualizer.next());
                 document.getElementById('prev').addEventListener('click', (_)=>visualizer.prev());
                 document.getElementById('animation').addEventListener('click', (_)=>toggle_animation());
-                let animation = false;
+                visualizer.set_input(Pt38H2);
                 tick();
                 function toggle_animation(){
                     animation = !animation;
@@ -73,7 +74,7 @@
                 function continue_animation(){
                     if(animation){
                         visualizer.next();
-                        requestAnimationFrame(()=>continue_animation());
+                        setTimeout(()=>continue_animation(), 50);
                     }
                 }
                 function tick(){
@@ -81,25 +82,26 @@
                     requestAnimationFrame(()=>tick());
                 }
                 function onmousedown(event){
+                    event.preventDefault();
+                    event.stopPropagation();
                     mouse_tracker.track(event);
                     const grabable = visualizer.grabable(mouse_tracker.new);
                     const selected = visualizer.selected_atoms.length > 0;
                     if(event.altKey){
                         if(selected && grabable){
-                            current_mode = mode.rotate_atoms;
+                            current_mode = mode.translate_atoms;
                         }else{
-                            current_mode = mode.rotate_camera;
+                            current_mode = mode.translate_camera;
                         }
                     }else if(event.shiftKey){
                         console.log(event);
                         current_mode = mode.select;
                         visualizer.open_selection(event, mouse_tracker.new);
                     }else{
-                        // visualizer.start_translate(mouse_tracker);
                         if(selected && grabable){
-                            current_mode = mode.translate_atoms;
+                            current_mode = mode.rotate_atoms;
                         }else{
-                            current_mode = mode.translate_camera;
+                            current_mode = mode.rotate_camera;
                         }
                     }
                 }
@@ -120,6 +122,8 @@
                     }
                 }
                 function onmouseup(event){
+                    event.preventDefault();
+                    event.stopPropagation();
                     mouse_tracker.track(event);
                     if(current_mode == mode.select){
                         visualizer.over_selection(event, mouse_tracker.new);

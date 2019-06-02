@@ -9,6 +9,7 @@ function* chain_mesh(mesheses) {
 class Objects {
     constructor() {
         this.atoms = [];
+        this.cells = [];
         this.bonds = [];
     }
     get objects() {
